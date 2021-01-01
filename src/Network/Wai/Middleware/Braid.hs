@@ -75,6 +75,7 @@ import Network.Wai.Middleware.AddHeaders (addHeaders)
 import Control.Concurrent.Chan (Chan, dupChan, readChan, writeChan)
 import Control.Monad.IO.Class (liftIO)
 import Data.Function (fix)
+import Data.ByteString (ByteString)
 import Data.ByteString.Builder                          (Builder, byteString, string7)
 
 import Network.Wai.Middleware.Braid.Internal
@@ -141,13 +142,13 @@ addPatchHeader = ifRequest isPutRequest $ addHeaders [("Patches", "OK")]
     TODO: look into Chan vs BroadcastChan (https://github.com/merijn/broadcast-chan)
 -}
 
-streamUpdates :: Chan Update -> Topic -> StreamingBody
-streamUpdates chan topic write flush = do
+streamUpdates :: Chan Update -> Topic -> Maybe ByteString -> StreamingBody
+streamUpdates chan topic client write flush = do
         flush
         src <- liftIO $ dupChan chan
         fix $ \loop -> do
             update <- readChan src
-            case updateToBuilder topic update of
+            case updateToBuilder topic client update of
                 Just b -> write b >> flush >> loop
                 Nothing -> loop
 

@@ -17,8 +17,11 @@ import Network.HTTP.Types.Status (status200)
     
 application src req respond = respond $ 
     if hasSubscription req 
-    then responseStream status209 [("Content-Type", "text/plain")] $ streamUpdates src ["topic"]
+    then responseStream status209 [("Content-Type", "text/plain")] $ streamUpdates src ["topic"] (Nothing)
     else responseLBS status200 [("Content-Type", "text/plain")] "Hello World"
+
+{-| 
+    instead of Nothing we can have (Just client), where client = lookupHeader "Client" $ requestHeaders req, the client field is for preventing echo updates by clients subscribing and sending updates -}
 
 main :: IO ()
 main = newChan >>= \src -> run 3000 $ braidify src $ application src
