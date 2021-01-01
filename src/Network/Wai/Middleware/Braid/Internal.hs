@@ -152,9 +152,10 @@ hasPatches req = isJust $ getPatches req
 requestToUpdate :: Request -> L.ByteString -> Update
 requestToUpdate req body = Update {
     updateTopic = pathInfo req,
-    updateHeaders = requestHeaders req,
+    updateHeaders = headers,
     updatePatches = body
-}
+} where
+    headers = [ (x, y) | (x, y) <- requestHeaders req, x `elem` [hSub, hVer, hMerge, hParents, hPatch, "Content-Type"]]
 
 
 separator :: B.ByteString
